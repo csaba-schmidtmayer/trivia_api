@@ -31,6 +31,19 @@ def create_app(test_config=None):
             'total_categories': len(categories)
         })
 
+    @app.route('/questions')
+    def get_paginated_questions():
+        page = request.args.get('page', 1, type=int)
+        questions = Question.query.order_by('id').all()
+        paginated_questions = questions[(page-1)*QUESTIONS_PER_PAGE:page*QUESTIONS_PER_PAGE]
+        categories = Category.query.all()
+        return jsonify({
+            'success': True,
+            'questions': [question.format() for question in paginated_questions],
+            'total_questions': len(questions),
+            'categories': [category.format() for category in categories],
+            'current_category': None
+        })
     '''
     @TODO: 
     Create an endpoint to handle GET requests for questions, 
