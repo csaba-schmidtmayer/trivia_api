@@ -22,11 +22,14 @@ def create_app(test_config=None):
         response.headers.add('Access-Control-Allow-Methods', 'GET,PATCH,POST,DELETE,OPTIONS')
         return response
 
-    '''
-    @TODO: 
-    Create an endpoint to handle GET requests 
-    for all available categories.
-    '''
+    @app.route('/categories')
+    def get_all_categories():
+        categories = Category.query.all()
+        return jsonify({
+            'success': True,
+            'categories': [category.format() for category in categories],
+            'total_categories': len(categories)
+        })
 
     '''
     @TODO: 
