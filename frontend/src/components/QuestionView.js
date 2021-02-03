@@ -26,10 +26,14 @@ class QuestionView extends Component {
       url: `/questions?page=${this.state.page}`, //TODO: update request URL
       type: "GET",
       success: (result) => {
+        const categories = {};
+        for (let i = 0; i < result.categories.length; i++) {
+          categories[result.categories[i].id] = result.categories[i].type;
+        }
         this.setState({
           questions: result.questions,
           totalQuestions: result.total_questions,
-          categories: result.categories,
+          categories: categories,
           currentCategory: result.current_category })
         return;
       },
