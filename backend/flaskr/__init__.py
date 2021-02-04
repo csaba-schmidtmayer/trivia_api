@@ -60,6 +60,16 @@ def create_app(test_config=None):
     def add_new_question():
         success = True
 
+        search_term = request.json.get('searchTerm', None)
+        if search_term is not None:
+            matching_questions = Question.query.filter(Question.question.ilike(f'%{search_term}%')).all()
+            return jsonify({
+                'success': True,
+                'questions': [question.format() for question in matching_questions],
+                'total_questions': len(matching_questions),
+                'current_category': None
+            })
+
         question = request.json.get('question', None)
         if question is None:
             abort(400, 'Missing field \'question\'.')
@@ -101,16 +111,6 @@ def create_app(test_config=None):
         else:
             abort(500, 'Adding the question to the database was unsuccessful.')
 
-    '''
-    @TODO: 
-    Create a POST endpoint to get questions based on a search term. 
-    It should return any questions for whom the search term 
-    is a substring of the question. 
-    
-    TEST: Search by any phrase. The questions list will update to include 
-    only question that include that string within their question. 
-    Try using the word "title" to start. 
-    '''
 
     '''
     @TODO: 
