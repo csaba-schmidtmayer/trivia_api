@@ -111,16 +111,19 @@ def create_app(test_config=None):
         else:
             abort(500, 'Adding the question to the database was unsuccessful.')
 
+    @app.route('/categories/<int:category_id>/questions')
+    def get_questions_by_category(category_id):
+        category = Category.query.get(category_id)
+        if category is None:
+            abort(422, 'The requested category does not exist.')
 
-    '''
-    @TODO: 
-    Create a GET endpoint to get questions based on category. 
-    
-    TEST: In the "List" tab / main screen, clicking on one of the 
-    categories in the left column will cause only questions of that 
-    category to be shown. 
-    '''
-
+        filtered_questions = Question.query.filter(Question.category == category_id).all()
+        return jsonify({
+            'success': True,
+            'questions': [question.format() for question in filtered_questions],
+            'total_questions': len(filtered_questions),
+            'current_category': category_id
+        })
 
     '''
     @TODO: 
@@ -163,6 +166,14 @@ def create_app(test_config=None):
             'error': 409,
             'message': error.description
         }), 409
+
+    @app.errorhandler(422)
+    def resource_not_found(error):
+        return jsonify({
+            'success': False,
+            'error': 422,
+            'message': error.description
+        }), 422
 
     @app.errorhandler(500)
     def resource_not_found(error):
