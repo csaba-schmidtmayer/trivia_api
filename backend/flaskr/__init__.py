@@ -48,13 +48,29 @@ def create_app(test_config=None):
         else:
             abort(404, 'The requested page is beyond the valid range.')
 
-    '''
-    @TODO: 
-    Create an endpoint to DELETE question using a question ID. 
-    
-    TEST: When you click the trash icon next to a question, the question will be removed.
-    This removal will persist in the database and when you refresh the page. 
-    '''
+    @app.route('/questions/<int:question_id>', methods=['DELETE'])
+    def delete_question(question_id):
+        success = True
+        question = Question.query.get(question_id)
+
+        if question is None:
+            abort(422, 'The question does not exist.')
+
+        try:
+            question.delete()
+        except Exception as e:
+            db.session.rollback()
+            success = False
+        finally:
+            db.session.close()
+
+        if success:
+            return jsonify({
+                'success': True,
+                'id': question_id
+            })
+        else:
+            abort(500, 'The question could not be deleted.')
 
     @app.route('/questions', methods=['POST'])
     def add_new_question():
