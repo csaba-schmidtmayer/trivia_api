@@ -37,25 +37,16 @@ def create_app(test_config=None):
         questions = Question.query.order_by('id').all()
         paginated_questions = questions[(page-1)*QUESTIONS_PER_PAGE:page*QUESTIONS_PER_PAGE]
         categories = Category.query.all()
-        return jsonify({
-            'success': True,
-            'questions': [question.format() for question in paginated_questions],
-            'total_questions': len(questions),
-            'categories': [category.format() for category in categories],
-            'current_category': None
-        })
-    '''
-    @TODO: 
-    Create an endpoint to handle GET requests for questions, 
-    including pagination (every 10 questions). 
-    This endpoint should return a list of questions, 
-    number of total questions, current category, categories. 
-    
-    TEST: At this point, when you start the application
-    you should see questions and categories generated,
-    ten questions per page and pagination at the bottom of the screen for three pages.
-    Clicking on the page numbers should update the questions. 
-    '''
+        if len(paginated_questions) > 0:
+            return jsonify({
+                'success': True,
+                'questions': [question.format() for question in paginated_questions],
+                'total_questions': len(questions),
+                'categories': [category.format() for category in categories],
+                'current_category': None
+            })
+        else:
+            abort(404, 'The requested page is beyond the valid range.')
 
     '''
     @TODO: 
@@ -114,6 +105,14 @@ def create_app(test_config=None):
     Create error handlers for all expected errors 
     including 404 and 422. 
     '''
+
+    @app.errorhandler(404)
+    def resource_not_found(error):
+        return jsonify({
+            'success': False,
+            'error': 404,
+            'message': error.description
+        }), 404
 
     return app
 
