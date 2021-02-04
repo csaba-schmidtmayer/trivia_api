@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
 
-from models import setup_db, Question, Category
+from models import db, setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
@@ -56,16 +56,50 @@ def create_app(test_config=None):
     This removal will persist in the database and when you refresh the page. 
     '''
 
-    '''
-    @TODO: 
-    Create an endpoint to POST a new question, 
-    which will require the question and answer text, 
-    category, and difficulty score.
-    
-    TEST: When you submit a question on the "Add" tab, 
-    the form will clear and the question will appear at the end of the last page
-    of the questions list in the "List" tab.  
-    '''
+    @app.route('/questions', methods=['POST'])
+    def add_new_question():
+        success = True
+
+        question = request.json.get('question', None)
+        if question is None:
+            abort(400, 'Missing field \'question\'.')
+
+        answer = request.json.get('answer', None)
+        if answer is None:
+            abort(400, 'Missing field \'answer\'.')
+
+        category = request.json.get('category', None)
+        if category is None:
+            abort(400, 'Missing field \'category\'.')
+
+        difficulty = request.json.get('difficulty', None)
+        if difficulty is None:
+            abort(400, 'Missing field \'difficulty\'.')
+
+        existing_question = Question.query.filter(Question.question.ilike(question)).first()
+        if existing_question is not None:
+            abort(409, 'The question already exists.')
+
+        try:
+            new_question = Question(
+                question=question,
+                answer=answer,
+                category=category,
+                difficulty=difficulty
+            )
+            new_question.insert()
+        except Exception as e:
+            db.session.rollback()
+            success = False
+        finally:
+            db.session.close()
+
+        if success:
+            return jsonify({
+                'success': True
+            }), 201
+        else:
+            abort(500, 'Adding the question to the database was unsuccessful.')
 
     '''
     @TODO: 
@@ -106,6 +140,14 @@ def create_app(test_config=None):
     including 404 and 422. 
     '''
 
+    @app.errorhandler(400)
+    def resource_not_found(error):
+        return jsonify({
+            'success': False,
+            'error': 400,
+            'message': error.description
+        }), 400
+
     @app.errorhandler(404)
     def resource_not_found(error):
         return jsonify({
@@ -113,6 +155,22 @@ def create_app(test_config=None):
             'error': 404,
             'message': error.description
         }), 404
+
+    @app.errorhandler(409)
+    def resource_not_found(error):
+        return jsonify({
+            'success': False,
+            'error': 409,
+            'message': error.description
+        }), 409
+
+    @app.errorhandler(500)
+    def resource_not_found(error):
+        return jsonify({
+            'success': False,
+            'error': 500,
+            'message': error.description
+        }), 500
 
     return app
 
