@@ -112,6 +112,16 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['error'], 409)
         self.assertEqual(data['message'], 'The question already exists.')
 
+    def test_search_question(self):
+        """Test case for successful question search"""
+        res = self.client().post('/questions', json={'searchTerm': 'cage'})
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['questions'])
+        self.assertTrue(len(data['questions']) == 1)
+        self.assertEqual(data['current_category'], None)
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
