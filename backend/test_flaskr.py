@@ -61,6 +61,57 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['error'], 404)
         self.assertEqual(data['message'], 'The requested page is beyond the valid range.')
 
+    def test_add_question_success(self):
+        """Test case for successfully creating a new question in the database"""
+        res = self.client().post(
+            '/questions',
+            json={
+                'question': 'Which country is the only remaining grand duchy?',
+                'answer': 'Luxembourg',
+                'category': 3,
+                'difficulty': 3
+            }
+        )
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 201)
+        self.assertEqual(data['success'], True)
+
+    def test_missing_field_when_adding_question(self):
+        """Test case for 400 error when missing a field in the POST body"""
+        res = self.client().post(
+            '/questions',
+            json={
+                'question': 'Which country is the only remaining grand duchy?',
+                'answer': 'Luxembourg',
+                'difficulty': 3
+            }
+        )
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['error'], 400)
+        self.assertEqual(data['message'], 'Missing field \'category\'.')
+
+    def test_adding_existing_question(self):
+        """Test case for 409 error when trying to add question that already exists in the database"""
+        res = self.client().post(
+            '/questions',
+            json={
+                'question': 'The Taj Mahal is located in which Indian city?',
+                'answer': 'Agra',
+                'category': 3,
+                'difficulty': 2
+            }
+        )
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 409)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['error'], 409)
+        self.assertEqual(data['message'], 'The question already exists.')
+
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
