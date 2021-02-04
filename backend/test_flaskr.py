@@ -144,6 +144,26 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['error'], 422)
         self.assertEqual(data['message'], 'The requested category does not exist.')
 
+    def test_delete_question_success(self):
+        """Test case for successfully deleting a question"""
+        res = self.client().delete('/questions/2')
+        data= json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['id'], 2)
+
+    def test_delete_question_422(self):
+        """Test case for trying to delete a question that does not exist"""
+        res = self.client().delete('/questions/1')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['error'], 422)
+        self.assertEqual(data['message'], 'The question does not exist.')
+
+
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
