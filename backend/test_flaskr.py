@@ -40,7 +40,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(len(data['categories']))
 
     def test_get_questions_first_page(self):
-        """Test case for succesful GET /questions?page=1"""
+        """Test case for successful GET /questions?page=1"""
         res = self.client().get('/questions?pages=1')
         data = json.loads(res.data)
 
@@ -50,6 +50,16 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(len(data['questions']) == 10)
         self.assertTrue(len(data['categories']))
         self.assertEqual(data['current_category'], None)
+
+    def test_questions_over_index_404(self):
+        """Test case for 404 error GET /questions?page=1000"""
+        res = self.client().get('/questions?page=1000')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['error'], 404)
+        self.assertEqual(data['message'], 'The requested page is beyond the valid range.')
 
 
 # Make the tests conveniently executable
