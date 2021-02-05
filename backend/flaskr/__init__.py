@@ -80,7 +80,7 @@ def create_app(test_config=None):
     def add_new_question():
         success = True
 
-        search_term = request.json.get('searchTerm', None)
+        search_term = request.json.get('search_term', None)
         if search_term is not None:
             matching_questions = Question.query.filter(Question.question.ilike(f'%{search_term}%')).all()
             return jsonify({
