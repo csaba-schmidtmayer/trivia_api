@@ -22,6 +22,10 @@ def create_app(test_config=None):
         response.headers.add('Access-Control-Allow-Methods', 'GET,PATCH,POST,DELETE,OPTIONS')
         return response
 
+    '''
+    Endpoints
+    '''
+
     @app.route('/categories')
     def get_all_categories():
         categories = Category.query.all()
@@ -164,11 +168,8 @@ def create_app(test_config=None):
 
         return jsonify(response)
 
-
     '''
-    @TODO: 
-    Create error handlers for all expected errors 
-    including 404 and 422. 
+    Error handlers
     '''
 
     @app.errorhandler(400)
@@ -212,5 +213,3 @@ def create_app(test_config=None):
         }), 500
 
     return app
-
-    
