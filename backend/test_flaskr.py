@@ -163,6 +163,26 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['error'], 422)
         self.assertEqual(data['message'], 'The question does not exist.')
 
+    def test_get_quiz_question_success(self):
+        """Test case for successfully getting a random quiz question"""
+        res = self.client().post('quizzes', json={'category': 2, 'previous_questions': [16, 18]})
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['question'])
+        self.assertTrue(data['question']['id'] in [17, 19] )
+
+    def test_get_quiz_question_422(self):
+        """Test case for requesting a quiz question with a category that does not exist"""
+        res = self.client().post('quizzes', json={'category': 10, 'previous_questions': [16, 18]})
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['error'], 422)
+        self.assertEqual(data['message'], 'The requested category does not exist.')
+
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
