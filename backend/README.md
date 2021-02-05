@@ -52,43 +52,240 @@ Setting the `FLASK_ENV` variable to `development` will detect file changes and r
 
 Setting the `FLASK_APP` variable to `flaskr` directs flask to use the `flaskr` directory and the `__init__.py` file to find the application. 
 
-## Tasks
+## Endpoints
 
-One note before you delve into your tasks: for each endpoint you are expected to define the endpoint and response data. The frontend will be a plentiful resource because it is set up to expect certain endpoints and response data formats already. You should feel free to specify endpoints in your own way; if you do so, make sure to update the frontend or you will get some unexpected behavior. 
+The backend API uses the following endpoints:
 
-1. Use Flask-CORS to enable cross-domain requests and set response headers. 
-2. Create an endpoint to handle GET requests for questions, including pagination (every 10 questions). This endpoint should return a list of questions, number of total questions, current category, categories. 
-3. Create an endpoint to handle GET requests for all available categories. 
-4. Create an endpoint to DELETE question using a question ID. 
-5. Create an endpoint to POST a new question, which will require the question and answer text, category, and difficulty score. 
-6. Create a POST endpoint to get questions based on category. 
-7. Create a POST endpoint to get questions based on a search term. It should return any questions for whom the search term is a substring of the question. 
-8. Create a POST endpoint to get questions to play the quiz. This endpoint should take category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions. 
-9. Create error handlers for all expected errors including 400, 404, 422 and 500. 
+| HTTP method | Route | Link |
+| --- | --- | --- |
+| GET | /categories | [Read more](#get-categories) |
+| GET | /questions | [Read more](#get-questions) |
+| GET | /categories/<category_id>/questions | [Read more](#get-categoriescategory_idquestions) |
+| POST | /questions | [Read more](#post-questions) |
+| POST | /quizzes | [Read more](#post-quizzes) |
+| DELETE | /questions/<question_id> | [Read more](#delete-questionsquestion_id) |
 
-REVIEW_COMMENT
-```
-This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
+### GET /categories
 
-Endpoints
-GET '/categories'
-GET ...
-POST ...
-DELETE ...
+Fetches a list of categories.
 
-GET '/categories'
-- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
-- Request Arguments: None
-- Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
-{'1' : "Science",
-'2' : "Art",
-'3' : "Geography",
-'4' : "History",
-'5' : "Entertainment",
-'6' : "Sports"}
+#### Example
 
+```bash
+curl http://127.0.0.1:5000/categories
 ```
 
+#### Request arguments
+
+None
+
+#### Response payload
+
+| Key | Data |
+| --- | --- |
+| `categories` | An array of [category objects](#category-objects). |
+
+### GET /questions
+
+Fetches a paginated list of questions. A page contains ten objects or less if the last page is requested.
+
+#### Example
+
+```bash
+curl http://127.0.0.1:5000/questions
+```
+
+#### Request arguments
+
+| Name | Type | Use |
+| --- | --- | --- |
+| `page` | int | Determines the slice of all objects that is returned. Default value is 1. A value over the valid range of pages returns a 404 error. |
+
+#### Response payload
+
+| Key | Data |
+| --- | --- |
+| `categories` | An array of [category objects](#category-objects). |
+| `current_category` | `null` |
+| `questions` | An array of [question objects](#question-objects). |
+| `success` | true |
+| `total_questions` | An integer specifying the total number of questions in the database, can be used to calculate the number of pages. |
+
+### GET /categories/<category_id>/questions
+
+Fetches the list of questions in the specified category. Trying to access an invalid category id returns a 422 error.
+
+#### Example
+
+```bash
+curl http://127.0.0.1:5000/categories/2/questions
+```
+
+#### Request arguments
+
+None
+
+#### Response payload
+
+| Key | Data |
+| --- | --- |
+| `current_category` | The id of the requested category. |
+| `questions` | An array of all [question objects](#question-objects) belonging to the requested category. |
+| `success` | true |
+| `total_questions` | An integer specifying the total number of returned questions. |
+
+### POST /questions
+
+Depending on the request payload, creates a new question in the database or performs a search on the question text.
+
+#### Example
+
+```bash
+curl http://127.0.0.1:5000/questions -H "Content-Type: application/json" -X POST -d "{\"question\":\"Which country is the only remainig grand duchy?\",\"answer\":\"Luxembourg\",\"category\":3,\"difficulty\":3}"
+```
+
+```bash
+curl http://127.0.0.1:5000/questions -H "Content-Type: application/json" -X POST -d "{\"search_term\":\"title\"}"
+```
+
+#### Request payload of submitting new questions
+
+| Key | Type | Data |
+| --- | --- | --- |
+| `question` | str | The question text. If a question with the same text exists in the database, a 409 error is returned. |
+| `answer` | str | The answer text. |
+| `category` | int | The id of the category the question belongs to. |
+| `difficulty` | int | The perceived difficulty of the question on a scale of 1-5. |
+
+All of the keys and their corresponding data must be included in the request.
+
+#### Response payload of submitting new questions
+
+| Key | Data |
+| --- | --- |
+| `success` | true |
+
+#### Request payload of performing a search
+
+| Key | Type | Data |
+| --- | --- | --- |
+| `search_term` | str | The search term. The search is case insensitive and successful if the search term is found anywhere in the question text. If included, other keys in the payload are discarded.|
+
+#### Response payload of performing a search
+
+| Key | Data |
+| --- | --- |
+| `current_category` | null |
+| `questions` | An array of all [question objects](#question-objects) that match the search term. |
+| `success` | true |
+| `total_questions` | An integer specifying the total number of returned questions. |
+
+### POST /quizzes
+
+Fetches a question for a quiz with the specified parameters.
+
+#### Example
+
+```bash
+curl http://127.0.0.1:5000/quizzes -H "Content-Type: application/json" -X POST -d "{\"category\":2,\"previous_questions\":[16,18]}"
+```
+
+#### Request arguments
+
+| Name | Type | Use |
+| --- | --- | --- |
+| `category` | int or null | The id of the category for the quiz or `null` to choose from any category. |
+
+#### Response payload
+
+| Key | Data |
+| --- | --- |
+| `current_category` | The id of the current category or `null`. |
+| `questions` | An single [question object](#question-objects) from the requested category or from any categories. |
+| `success` | true |
+
+### DELETE /questions/<question_id>
+
+Deletes the specified question. Trying to delete a question that does not exist returns a 422 error.
+
+#### Example
+
+```bash
+curl http://127.0.0.1:5000/questions/2 -X DELETE
+```
+
+#### Request arguments
+
+None
+
+#### Response payload
+
+| Key | Data |
+| --- | --- |
+| `success` | true |
+| `id` | The former id of the question that was deleted. |
+
+### Error payload
+
+HTTP errors return a payload with the following shape:
+
+| Key | Data |
+| --- | --- |
+| `error` | The HTTP status code. |
+| `message` | A descriptive message of the exact problem. |
+| `success` | false |
+
+#### Example
+
+```
+{
+  "error": 422,
+  "message": "The requested category does not exist.",
+  "success": false
+}
+```
+
+###  Category objects
+
+Category objects represent a quiz category and have the following shape:
+
+| Key | Data |
+| --- | --- |
+| `id` | The id of the category. |
+| `type` | The name of the category. |
+
+#### Example
+
+```
+{
+  "id": 1,
+  "type": "Science"
+}
+```
+
+###  Question objects
+
+Question objects represent a quiz question and have the following shape:
+
+| Key | Data |
+| --- | --- |
+| `id` | The id of the question |
+| `question` | The question text. |
+| `answer` | The answer text. |
+| `category` | The id of the category the question belongs to. |
+| `difficulty` | The perceived difficulty of the question. |
+
+#### Example
+
+```
+{
+  "id": 18,
+  "question": "How many paintings did Van Gogh sell in his lifetime?",
+  "answer": "One",
+  "category": 2,
+  "difficulty": 4
+}
+```
 
 ## Testing
 To run the tests, run
@@ -98,3 +295,7 @@ createdb trivia_test
 psql trivia_test < trivia.psql
 python test_flaskr.py
 ```
+
+## Credits
+
+The random question query is based on [this Stackoverflow answer](https://stackoverflow.com/a/33583008) from Jeff Widman.
