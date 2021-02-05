@@ -25,7 +25,11 @@ class QuizView extends Component {
       url: `/categories`, //TODO: update request URL
       type: "GET",
       success: (result) => {
-        this.setState({ categories: result.categories })
+        const categories = {};
+          for (let i = 0; i < result.categories.length; i++) {
+            categories[result.categories[i].id] = result.categories[i].type;
+          }
+        this.setState({ categories: categories })
         return;
       },
       error: (error) => {
@@ -35,7 +39,7 @@ class QuizView extends Component {
     })
   }
 
-  selectCategory = ({type, id=0}) => {
+  selectCategory = ({type, id=null}) => {
     this.setState({quizCategory: {type, id}}, this.getNextQuestion)
   }
 
@@ -54,7 +58,7 @@ class QuizView extends Component {
       contentType: 'application/json',
       data: JSON.stringify({
         previous_questions: previousQuestions,
-        quiz_category: this.state.quizCategory
+        category: this.state.quizCategory.id
       }),
       xhrFields: {
         withCredentials: true
