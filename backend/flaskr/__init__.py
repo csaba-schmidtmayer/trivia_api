@@ -143,17 +143,19 @@ def create_app(test_config=None):
 
     @app.route('/quizzes', methods=['POST'])
     def get_quiz_question():
+        print(request.json)
         category_id = request.json.get('category', None)
-        category = Category.query.get(category_id)
-        if category is None:
-            abort(422, 'The requested category does not exist.')
+        if category_id is not None:
+            category = Category.query.get(category_id)
+            if category is None:
+                abort(422, 'The requested category does not exist.')
 
         previous_questions = request.json.get('previous_questions', [])
-        random_question = Question.get_random_question(previous_questions, category.id)
+        random_question = Question.get_random_question(previous_questions, category_id)
 
         response = {
             'success': True,
-            'current_category': category.id
+            'current_category': category_id
         }
         try:
             response['question'] = random_question.format()
